@@ -1,25 +1,22 @@
+import { GetStaticProps } from 'next'
 import Image from 'next/image'
+import Link from 'next/link'
 
+import Stripe from 'stripe'
 import { useKeenSlider } from 'keen-slider/react'
+import 'keen-slider/keen-slider.min.css'
 
 import { HomeContent, Product } from '@/styles/pages/home'
-
-import camiseta1 from '@/assets/camisetas/camiseta1.png'
-import camiseta2 from '@/assets/camisetas/camiseta2.png'
-import camiseta3 from '@/assets/camisetas/camiseta3.png'
-import camiseta4 from '@/assets/camisetas/camiseta4.png'
-
-import 'keen-slider/keen-slider.min.css'
 import { stripe } from '@/lib/stripe'
-import { GetServerSideProps } from 'next'
-import Stripe from 'stripe'
+import Head from 'next/head'
+
 
 interface IHomeProps {
   products: {
     id: string
     name: string
     imageUrl: string
-    price: number
+    price: string
   }[]
 }
 
@@ -31,35 +28,51 @@ export default function Home({products}: IHomeProps) {
     },
   })
   return (
-  <HomeContent ref={sliderRef} className='keen-slider'>
-    {products.map(({id, imageUrl, name, price}) => {
-      return (
-        <Product className='keen-slider__slide' key={id}>
-          <Image src={camiseta1} alt='' width={520} height={480}/>
-          <footer>
-            <strong>{name}</strong>
-            <span>{price}</span>
-          </footer>
-        </Product>
-      )
-    })}
-  </HomeContent>
+    <>
+      <Head>
+        <title>Home | Ignite Shop</title>
+      </Head>
+
+      <HomeContent ref={sliderRef} className='keen-slider'>
+        {products.map(({id, imageUrl, name, price}) => {
+          return (
+            <Link 
+              key={id}
+              href={`/product/${id}`}
+              prefetch
+            >
+              <Product className='keen-slider__slide'>
+                <Image src={imageUrl} alt='' width={520} height={480}/>
+                <footer>
+                  <strong>{name}</strong>
+                  <span>{price}</span>
+                </footer>
+              </Product>
+            </Link>
+          )
+        })}
+      </HomeContent>
+    </>
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async () => {
+export const getStaticProps: GetStaticProps = async () => {
   const response = await stripe.products.list({
     expand: ['data.default_price']
   })
 
   const products = response.data.map(products => {
     const price = products.default_price as Stripe.Price
+    const unitAmount = price.unit_amount ? price.unit_amount / 100 : 0;
 
     return {
       id: products.id,
       name: products.name,
       imageUrl: products.images[0],
-      price: price.unit_amount / 100,      
+      price: new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(unitAmount),   
     }
   })
   
@@ -67,5 +80,6 @@ export const getServerSideProps: GetServerSideProps = async () => {
     props: {
       products: products,
     },
+    revalidate: 60 * 60 * 2
   }
 }
