@@ -24,7 +24,7 @@ jobs:
       - name: Set up environment variables
         run: |
           echo "STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_API_KEY }}" >> .env.local
-          echo "STRIPE_PUBLIC_KEY_BASE_URL=https://api.stripe.com" >> .env.local
+          echo "NEXT_PUBLIC_STRIPE_API_BASE_URL=https://api.stripe.com" >> .env.local
 
       - name: Build Next.js app
         run: STRIPE_PUBLIC_KEY=$STRIPE_PUBLIC_KEY npm run build
