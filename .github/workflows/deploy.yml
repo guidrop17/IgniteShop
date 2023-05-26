@@ -23,11 +23,11 @@ jobs:
 
       - name: Set up environment variables
         run: |
-          echo "STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }}" >> .env.prod
-          echo "NEXT_PUBLIC_STRIPE_API_BASE_URL=https://api.stripe.com" >> .env.prod
+          echo "STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }}" >> .env.local
+          echo "NEXT_PUBLIC_STRIPE_API_BASE_URL=https://api.stripe.com" >> .env.local
 
       - name: Build Next.js app
-        run: npm run build
+        run: STRIPE_PUBLIC_KEY=$STRIPE_PUBLIC_KEY npm run build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
